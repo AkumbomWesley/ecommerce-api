@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class EcommerceApiConfig(AppConfig):
+class CategoriesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'eCommerce_API'
+    name = 'apps.categories'
