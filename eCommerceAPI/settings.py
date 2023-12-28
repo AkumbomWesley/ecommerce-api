@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import apps
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,11 +36,13 @@ LOCAL_APPS = [
     'apps.cart',
     'apps.cart_item',
     'apps.categories',
+    'apps.core',
     'apps.coupon',
     'apps.order',
     'apps.payment',
     'apps.products',
     'apps.review',
+    'apps.store',
     'apps.users',
     'apps.wishlist'
 ]
@@ -52,7 +55,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+    'rest_framework_simplejwt',
 ] + LOCAL_APPS
 
 MIDDLEWARE = [
@@ -63,7 +67,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+
+# CORS_ALLOWED_ORIGINS = [
+
+# ]
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'eCommerceAPI.urls'
 
@@ -84,6 +95,29 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'eCommerceAPI.wsgi.application'
+
+# JWT authentication settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+AUTHENTICATION_BACKENDS = [
+    'apps.users.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AUTH_USER_MODEL = 'users.User'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Customize as needed
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Customize as needed
+}
 
 
 # Database
@@ -128,7 +162,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC+1'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
