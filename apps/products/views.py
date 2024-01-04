@@ -50,17 +50,18 @@ class ProductUpdateView(APIView):
         except Product.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ProductSerializer(product, data=request.data)
+        data = request.data.copy()
+
+        serializer = ProductSerializer(product, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProductDeleteViewSet(ViewSet):
+class ProductDeleteSingleView(APIView):
     permission_classes = [IsAuthenticated, IsStoreOwner]
 
-    @action(detail=True, methods=['delete'])
-    def delete_single(self, request, pk=None):
+    def delete(self, request, pk=None):
         try:
             product = Product.objects.get(pk=pk)
         except Product.DoesNotExist:
@@ -68,8 +69,10 @@ class ProductDeleteViewSet(ViewSet):
 
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class ProductDeleteAllView(APIView):
+    permission_classes = [IsAuthenticated, IsStoreOwner]
 
-    @action(detail=False, methods=['delete'])
-    def delete_all(self, request):
+    def delete(self, request):
         Product.objects.all().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
