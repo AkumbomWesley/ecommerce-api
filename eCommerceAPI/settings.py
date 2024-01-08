@@ -37,7 +37,6 @@ LOCAL_APPS = [
     'apps.cart_item',
     'apps.categories',
     'apps.core',
-    'apps.coupon',
     'apps.order',
     'apps.payment',
     'apps.products',

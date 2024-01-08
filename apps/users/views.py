@@ -1,67 +1,81 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from apps.core.models import BaseModel
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import User
+from .serializers import UserSerializer
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, first_name, last_name, password=None):
-        if not email:
-            raise ValueError('The Email field must be set')
+class UserCreateView(APIView):
+    def post(self, request, format=None):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        email = self.normalize_email(email)
-        user = self.model(email=email, first_name=first_name, last_name=last_name)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+class UserLoginView(APIView):
+    def post(self, request, format=None):
+        # Your login logic goes here
+        # ...
 
-    def create_superuser(self, email, first_name, last_name, password=None):
-        user = self.create_user(email, first_name, last_name, password=password)
-        user.role = 'admin'
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
+class GetUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
-class User(BaseModel, AbstractBaseUser):
-    ROLE_CHOICES = [
-        ('owner', 'Store Owner'),
-        ('staff', 'Store Staff'),
-        ('customer', 'Customer'),
-        ('admin', 'admin')
-    ]
+    def get(self, request, user_id, format=None):
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    GENDER_CHOICES = [
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('other', 'Other'),
-    ]
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
-    gender = models.CharField(max_length=16, choices=GENDER_CHOICES)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-    address = models.CharField(max_length=50)
-    phone_number = models.CharField(max_length=20)
+class UserUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    objects = UserManager()
+    def put(self, request, user_id, format=None):
+        user = self.get_object(user_id)
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    def get_object(self, user_id):
+        try:
+            user = User.objects.get(pk=user_id)
+            self.check_object_permissions(self.request, user)  # Check object-level permissions
+            return user
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+class GetAllUsersView(APIView):
+    permission_classes = [IsAdminUser]
 
-    def has_perm(self, perm, obj=None):
-        return True
+    def get(self, request, format=None):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def has_module_perms(self, app_label):
-        return True
+class UserDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    @property
-    def is_superuser(self):
-        return self.is_admin
-    class Meta:
-        verbose_name = 'User Account'
-        verbose_name_plural = 'User Accounts'
+    def delete(self, request, user_id, format=None):
+        user = self.get_object(user_id)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_object(self, user_id):
+        try:
+            user = User.objects.get(pk=user_id)
+            self.check_object_permissions(self.request, user)  # Check object-level permissions
+            return user
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+class DeleteAllUsersView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def delete(self, request, format=None):
+        User.objects.all().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
