@@ -13,11 +13,16 @@ class StoreCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStoreOwner]
 
     def post(self, request, format=None):
+        product_ids = request.data.get('products', [])
+        if len(product_ids) < 1:
+            return Response({'error': 'At least one product is required to open a store.'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = StoreSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class StoreDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
