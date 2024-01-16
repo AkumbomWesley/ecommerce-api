@@ -43,7 +43,7 @@ class User(BaseModel, AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     gender = models.CharField(max_length=16, choices=GENDER_CHOICES)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, null=True, blank=True)
     address = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=20)
 

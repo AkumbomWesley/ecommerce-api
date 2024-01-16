@@ -6,18 +6,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = User(**validated_data)
+        user = User.objects.create(**validated_data, role='customer')
         user.set_password(password)
         user.save()
         return user
- 
+
     class Meta:
         model = User
-        fields = '__all__'
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'role': {'read_only': True}  # Set the role field as read-only
-        }
+        fields = ['id', 'first_name', 'last_name', 'email', 'password','role',
+                  'phone_number', 'gender', 'address', 'is_staff', 'is_admin', 'is_active',
+                  'created_at', 'updated_at']
 
 class CustomUserSerializer(serializers.ModelSerializer):
     model = User
