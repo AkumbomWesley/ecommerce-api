@@ -10,12 +10,14 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
-
-  
  
     class Meta:
         model = User
         fields = '__all__'
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'read_only': True}  # Set the role field as read-only
+        }
 
 class CustomUserSerializer(serializers.ModelSerializer):
     model = User

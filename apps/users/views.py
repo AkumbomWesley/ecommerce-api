@@ -13,7 +13,9 @@ from permissions.custom_permissions import IsSuperUserOrAdminRole
 User = get_user_model()
 class UserCreateView(APIView):
     def post(self, request, format=None):
-        serializer = UserSerializer(data=request.data)
+        data = request.data.copy()
+        data["role"] = "customer"  # Set the role to "customer"
+        serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
