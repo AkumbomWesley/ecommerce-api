@@ -8,7 +8,7 @@ class Store(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField()
     products = models.ManyToManyField(Product, related_name='stores')
-    owner = models.ForeignKey(User, on_delete = models.CASCADE )
+    owner = models.OneToOneField(User, on_delete = models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name

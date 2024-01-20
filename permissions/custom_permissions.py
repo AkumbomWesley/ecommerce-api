@@ -7,4 +7,4 @@ class IsSuperUserOrAdminRole(BasePermission):
 
 class IsStoreOwner(BasePermission):
     def has_permission(self, request, view):
-           return request.user.is_authenticated and request.user.role == 'owner' and request.user.store_id is not None
+        return request.user.is_authenticated and hasattr(request.user, 'store') and request.user.store.owner == request.user

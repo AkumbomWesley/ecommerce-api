@@ -15,6 +15,8 @@ class ProductListView(APIView):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # TODO set permissions for accessing all products
 
 class ProductDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -34,7 +36,12 @@ class ProductCreateView(APIView):
     def post(self, request, format=None):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            product = serializer.save()  # Save the product instance
+
+            # Add the product to the store's products list
+            store = request.user.store 
+            store.products.add(product)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

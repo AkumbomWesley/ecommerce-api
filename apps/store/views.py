@@ -10,19 +10,17 @@ from permissions.custom_permissions import IsStoreOwner, IsSuperUserOrAdminRole
 from .models import Store
 
 class StoreCreateView(APIView):
-    permission_classes = [IsAuthenticated, IsStoreOwner]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
-        product_ids = request.data.get('products', [])
-        if len(product_ids) < 1:
-            return Response({'error': 'At least one product is required to open a store.'}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = StoreSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            user = request.user
+            user.role = 'owner'
+            user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class StoreDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -57,12 +55,12 @@ class StoreDeleteSingleView(APIView):
 
     def delete(self, request, pk=None):
         try:
-            store = store.objects.get(pk=pk)
-        except store.DoesNotExist:
+            store = Store.objects.get(pk=pk)
+        except Store.DoesNotExist:
             return Response({"Error": "Store Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
 
         store.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"Message:" : "Store Deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 class StoreListView(APIView):
     permission_classes = [IsAuthenticated]
